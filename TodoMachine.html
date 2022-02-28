@@ -1,0 +1,192 @@
+<html>
+<head>
+    <title>Todo Machine</title>
+</head>
+<style>
+    body{
+        background-color: cornflowerblue;
+        padding:0;
+        margin:0;
+    }
+    #App{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding:1em;
+    }
+    .statusBox {
+        min-width: 250px;
+        background-color: lightgrey;
+        padding: 6px;
+        height: 90vh;
+        margin-right: 10px;
+    }
+    .statusBox > h4{
+        text-align: center;
+        font-family: sans-serif;
+    }
+    .taskBox{
+        padding: 10px;
+        margin: 6px 6px 16px 6px;
+        border:1px solid gray;
+        background-color: whitesmoke;
+        box-shadow: 2px 4px darkgrey;
+        cursor: move;
+    }
+    .todoHeading{
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .todoDescription{
+        font-size: 0.9em;
+    }
+    #createTask{
+        margin-top:6px;
+        margin-left: 14px;
+    }
+</style>
+<body>
+<button id="createTask">Create Task</button>
+<div id="App">
+</div>
+<script>
+    let statusBox = [
+        {
+            heading: "Todo",
+            id: "todo"
+        },
+        {
+            heading: "In-Review",
+            id: "review"
+        },
+        {
+            heading: "Completed",
+            id:"completed"
+        }
+    ];
+    function printAllStatus(){
+        let res = [];
+        for(let value of statusBox){
+            res.push(value.id);
+        }
+        return res.join();
+    }
+    function validateAllStatus(data){
+        for(let value of statusBox){
+            if(value.id === data){
+                return true;
+            }
+        }
+        return false;
+    }
+    // creating status box
+    let Apptag = document.getElementById("App");
+    for(let value of statusBox){
+        let div = document.createElement("div");
+        div.className= "statusBox";
+        div.id = value.id;
+        div.innerHTML = `<h4>${value.heading}</h4>`;
+        Apptag.append(div);
+    }
+    // loading tasks;
+    let taskBox = localStorage.getItem("todoList");
+    if(!taskBox){
+        taskBox = [];
+    }else{
+        taskBox = JSON.parse(taskBox);
+    }
+
+    // create and painting elememnt
+    function createTodoTask(taskBox){
+        let div;
+        for(let value of taskBox){
+            div = document.createElement("div");
+            div.className= "taskBox";
+            div.id = value.id;
+            div.draggable = true;
+            div.innerHTML = `<div class="todoHeading">${value.heading}</div>
+        <div class="todoDescription">${value.description}</div>
+        <br/>
+        <button class="editTask" data-id="${value.id}">Edit</button>
+        <button  class="deleteTask" data-id="${value.id}">Delete</button>`;
+            document.getElementById(value.tagID).append(div);
+        }
+    }
+    createTodoTask(taskBox);
+
+    // Edit task
+    function editTodoTask(updatedTask,dataID){
+        for(let i=0;i<taskBox.length;i++){
+            if(taskBox[i].id == dataID){
+                taskBox[i].description = updatedTask;
+                break;
+            }
+        }
+        localStorage.setItem("todoList",JSON.stringify(taskBox));
+    }
+
+    // Delete task
+    function deleteTodoTask(dataID){
+        for(let i=0;i<taskBox.length;i++){
+            if(taskBox[i].id == dataID){
+                taskBox.splice(i,1);
+                console.log(taskBox);
+                break;
+            }
+        }
+        localStorage.setItem("todoList",JSON.stringify(taskBox));
+    }
+
+    // Creating Task;
+    document.getElementById("createTask").addEventListener("click",() => {
+       let heading = prompt("Enter task heading");
+       if(heading.trim().length < 5){
+           alert('Heading should contain atleast 5 characters');
+           return
+       }
+       let description = prompt("Enter Description");
+       if(description.trim().length < 5){
+           alert('Description should contain at least 5 characters');
+           return;
+       }
+       let taskType = prompt("Enter task type from "+printAllStatus())
+        // validate task type later;
+        if(taskType === null || !validateAllStatus(taskType)){
+            alert("Invalid task type");
+            return;
+        }
+        let newTaskBox = {
+            id: taskBox.length < 1 ? 1: taskBox[taskBox.length-1].id + 1,
+            tagID: taskType,
+            heading,
+            description
+        }
+        taskBox.push(newTaskBox);
+        localStorage.setItem("todoList",JSON.stringify(taskBox));
+        createTodoTask([newTaskBox]);
+    });
+    document.getElementById("App").addEventListener('click',function(e){
+        if(e.target.className === "editTask" && e.target.dataset.id > 0){
+            let updateTask = prompt("Update description");
+            if(updateTask.trim().length < 5){
+                alert('Description should contain at least 5 characters');
+                return;
+            }
+            let taskID = e.target.dataset.id;
+            editTodoTask(updateTask,taskID);
+            e.path[1].children[1].innerText = updateTask;
+            return
+        }
+        if(e.target.className === "deleteTask" && e.target.dataset.id > 0){
+            let confirmDelete = confirm("Are you sure you want to delete task");
+            if(confirmDelete){
+                let taskID = e.target.dataset.id;
+                deleteTodoTask(taskID);
+                e.path[1].remove()
+            }
+            return;
+        }
+    });
+</script>
+</body>
+</html>
