@@ -44,6 +44,9 @@
         margin-top:6px;
         margin-left: 14px;
     }
+    .dragging{
+        opacity: 0.4;
+    }
 </style>
 <body>
 <button id="createTask">Create Task</button>
@@ -102,7 +105,7 @@
         for(let value of taskBox){
             div = document.createElement("div");
             div.className= "taskBox";
-            div.id = value.id;
+            div.dataset.id = value.id;
             div.draggable = true;
             div.innerHTML = `<div class="todoHeading">${value.heading}</div>
         <div class="todoDescription">${value.description}</div>
@@ -137,6 +140,18 @@
         localStorage.setItem("todoList",JSON.stringify(taskBox));
     }
 
+    //Update Task
+    function updateTodoTask(updatedTag, dataID){
+        for(let i=0;i<taskBox.length;i++){
+            if(taskBox[i].id == dataID){
+                taskBox[i].tagID = updatedTag;
+                localStorage.setItem("todoList",JSON.stringify(taskBox));
+                return taskBox[i];
+            }
+        }
+
+    }
+
     // Creating Task;
     document.getElementById("createTask").addEventListener("click",() => {
        let heading = prompt("Enter task heading");
@@ -165,6 +180,7 @@
         localStorage.setItem("todoList",JSON.stringify(taskBox));
         createTodoTask([newTaskBox]);
     });
+    // Edit Delete Listener
     document.getElementById("App").addEventListener('click',function(e){
         if(e.target.className === "editTask" && e.target.dataset.id > 0){
             let updateTask = prompt("Update description");
@@ -186,6 +202,35 @@
             }
             return;
         }
+    });
+    let dragDropStatusBox=[];
+    // Dragging Listener
+    document.getElementById("App").addEventListener('dragstart',function (e){
+       e.target.className = "taskBox dragging";
+    });
+    document.getElementById("App").addEventListener('dragend',function (e){
+        e.target.className = "taskBox"
+        let taskID = e.target.dataset.id;
+        if(dragDropStatusBox.length === 2){
+            let updatedObj = updateTodoTask(dragDropStatusBox[1],taskID);
+            e.target.remove();
+            createTodoTask([updatedObj]);
+        }
+    });
+    document.getElementById("App").addEventListener('dragover',function (e){
+       e.preventDefault();
+       let taskStatusBox = document.querySelectorAll('.dragging')[0].parentNode.id;
+       for(let element of e.path){
+           if(element.className === "statusBox"){
+               let updateIdStatusBox = element.id;
+               if(taskStatusBox!==updateIdStatusBox){
+                   dragDropStatusBox = [taskStatusBox,updateIdStatusBox];
+               }else{
+                   dragDropStatusBox = [];
+               }
+               break;
+           }
+       }
     });
 </script>
 </body>
