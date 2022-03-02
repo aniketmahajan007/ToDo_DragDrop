@@ -209,29 +209,43 @@
        e.target.className = "taskBox dragging";
     });
     document.getElementById("App").addEventListener('dragend',function (e){
-        e.target.className = "taskBox"
-        let taskID = e.target.dataset.id;
-        if(dragDropStatusBox.length === 2){
-            let updatedObj = updateTodoTask(dragDropStatusBox[1],taskID);
-            e.target.remove();
-            createTodoTask([updatedObj]);
+        setTimeout(() => {
+            e.target.className = "taskBox"
+            let taskID = e.target.dataset.id;
+            if(dragDropStatusBox.length === 2){
+                let updatedObj = updateTodoTask(dragDropStatusBox[1],taskID);
+                e.target.remove();
+                createTodoTask([updatedObj]);
+            }
+        },150);
+    });
+    function debouncingDragging(fn,delay){
+        let timer;
+        return function (args){
+            clearTimeout(timer);
+            timer = setTimeout(()=>{
+                fn(args);
+            },delay);
         }
-    });
-    document.getElementById("App").addEventListener('dragover',function (e){
-       e.preventDefault();
-       let taskStatusBox = document.querySelectorAll('.dragging')[0].parentNode.id;
-       for(let element of e.path){
-           if(element.className === "statusBox"){
-               let updateIdStatusBox = element.id;
-               if(taskStatusBox!==updateIdStatusBox){
-                   dragDropStatusBox = [taskStatusBox,updateIdStatusBox];
-               }else{
-                   dragDropStatusBox = [];
-               }
-               break;
-           }
-       }
-    });
+    }
+    function elementDragging(e){
+        console.log(e);
+        e.preventDefault();
+        let taskStatusBox = document.querySelectorAll('.dragging')[0].parentNode.id;
+        for(let element of e.path){
+            if(element.className === "statusBox"){
+                let updateIdStatusBox = element.id;
+                if(taskStatusBox!==updateIdStatusBox){
+                    dragDropStatusBox = [taskStatusBox,updateIdStatusBox];
+                }else{
+                    dragDropStatusBox = [];
+                }
+                break;
+            }
+        }
+    }
+    const elementDraggingDebounce = debouncingDragging(elementDragging,100);
+    document.getElementById("App").addEventListener('dragover',elementDraggingDebounce);
 </script>
 </body>
 </html>
