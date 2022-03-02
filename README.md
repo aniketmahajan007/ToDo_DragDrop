@@ -8,3 +8,4 @@ Feature:
 - Edit, Delete
 - Drag and Drop
 - Pure Vanilla JS, HTML, CSS
+- Debouncing dragging
